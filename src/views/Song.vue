@@ -20,7 +20,7 @@
           <!-- Song Info -->
           <div class="text-3xl font-bold">{{ song.modified_name }}</div>
           <div>{{ song.genre }}</div>
-          <!-- <div class="song-price">{{$n(1, 'currency', 'ja')}}</div> -->
+          <div class="song-price">{{ $n(1, 'currency', 'ja') }}</div>
         </div>
       </div>
     </section>
@@ -32,9 +32,11 @@
         <div class="px-6 pt-6 pb-5 font-bold border-b border-gray-200">
           <!-- Comment Count -->
           <span class="card-title">
-            {{$tc('song.comment_count', song.comment_count, {
-              count: song.comment_count
-            })}}
+            {{
+              $tc('song.comment_count', song.comment_count, {
+                count: song.comment_count,
+              })
+            }}
           </span>
           <i class="fa fa-comments float-right text-green-400 text-2xl"></i>
         </div>
@@ -119,7 +121,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(['userLoggedIn']),
+    ...mapState({
+      userLoggedIn: (state) => state.auth.userLoggedIn,
+    }),
     sortedComments() {
       return this.comments.slice().sort((a, b) => {
         if (this.sort === '1') {
@@ -130,20 +134,24 @@ export default {
       });
     },
   },
-  async created() {
-    const docSnapshot = await songsCollection.doc(this.$route.params.id).get();
+  async beforeRouteEnter(to, from, next) {
+    const docSnapshot = await songsCollection.doc(to.params.id).get();
 
-    if (!docSnapshot.exists) {
-      this.$router.push({ name: 'home' });
-      return;
-    }
+    next((vm) => {
+      if (!docSnapshot.exists) {
+        vm.$router.push({ name: 'home' });
+        return;
+      }
 
-    const { sort } = this.$route.query;
+      const { sort } = vm.$route.query;
 
-    this.sort = sort === '1' || sort === '2' ? sort : '1';
+      // eslint-disable-next-line no-param-reassign
+      vm.sort = sort === '1' || sort === '2' ? sort : '1';
 
-    this.song = docSnapshot.data();
-    this.getComments();
+      // eslint-disable-next-line no-param-reassign
+      vm.song = docSnapshot.data();
+      vm.getComments();
+    });
   },
   methods: {
     ...mapActions(['newSong']),
@@ -151,9 +159,7 @@ export default {
       this.comment_in_submission = true;
       this.comment_show_alert = true;
       this.comment_alert_variant = 'bg-blue-500';
-      // eslint-disable-next-line operator-linebreak
-      this.comment_alert_message =
-        'Please wait! Your comment is being submitted';
+      this.comment_alert_message = 'Please wait! Your comment is being submitted';
 
       const comment = {
         content: values.comment,

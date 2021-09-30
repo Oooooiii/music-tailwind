@@ -1,30 +1,32 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '@/views/Home.vue';
-import About from '@/views/About.vue';
-import Manage from '@/views/Manage.vue';
-import Song from '@/views/Song.vue';
 import store from '@/store';
+
+const Home = () => import('@/views/Home.vue');
+const Manage = () => import(/* webpackChunkName: "groupedChunk" */'@/views/Manage.vue');
+const Song = () => import(/* webpackChunkName: "groupedChunk" */'@/views/Song.vue');
+const About = () => import('@/views/About.vue');
 
 const routes = [
   {
-    path: '/',
-    name: 'Home',
+    name: 'home',
+    path: '/', // example.com/
     component: Home,
   },
   {
+    name: 'about',
     path: '/about',
-    name: 'About',
     component: About,
   },
   {
+    name: 'manage',
+    // alias: '/manage',
     path: '/manage-music',
-    name: 'Manage',
-    component: Manage,
     meta: {
       requiresAuth: true,
     },
+    component: Manage,
     beforeEnter: (to, from, next) => {
-      console.log('Manage Route Gurad');
+      console.log('Manage Route Guard');
       next();
     },
   },
@@ -33,13 +35,13 @@ const routes = [
     redirect: { name: 'manage' },
   },
   {
+    name: 'song',
     path: '/song/:id',
-    name: 'Song',
     component: Song,
   },
   {
     path: '/:catchAll(.*)*',
-    redirect: { name: 'Home' },
+    redirect: { name: 'home' },
   },
 ];
 
@@ -50,17 +52,17 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  // Check if user visited path is 'requiresAuth', if not then just let them go.
+  // console.log(to.matched);
+
   if (!to.matched.some((record) => record.meta.requiresAuth)) {
     next();
     return;
   }
 
-  // check if user is logged or not, after knowing the path they currently visit is 'requiresAuth'
-  if (store.state.userLoggedIn) {
+  if (store.state.auth.userLoggedIn) {
     next();
   } else {
-    next({ name: 'Home' });
+    next({ name: 'home' });
   }
 });
 

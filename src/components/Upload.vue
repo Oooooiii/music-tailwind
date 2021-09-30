@@ -17,8 +17,7 @@
         @dragover.prevent.stop="is_dragover = true"
         @dragenter.prevent.stop="is_dragover = true"
         @dragleave.prevent.stop="is_dragover = false"
-        @drop.prevent.stop="upload($event)"
-      >
+        @drop.prevent.stop="upload($event)">
         <h5>Drop your files here</h5>
       </div>
       <input type="file" multiple @change="upload($event)" />
@@ -31,11 +30,9 @@
         </div>
         <div class="flex h-4 overflow-hidden bg-gray-200 rounded">
           <!-- Inner Progress Bar -->
-          <div
-            class="transition-all progress-bar"
+          <div class="transition-all progress-bar"
             :class="upload.variant"
-            :style="{ width: upload.current_progress + '%' }"
-          ></div>
+            :style="{ width: upload.current_progress + '%' }"></div>
         </div>
       </div>
     </div>
@@ -47,18 +44,13 @@ import { storage, auth, songsCollection } from '@/includes/firebase';
 
 export default {
   name: 'Upload',
-  props: ['addSong'],
   data() {
     return {
       is_dragover: false,
       uploads: [],
     };
   },
-  beforeUnmount() {
-    this.uploads.forEach((upload) => {
-      upload.task.cancel();
-    });
-  },
+  props: ['addSong'],
   methods: {
     upload($event) {
       this.is_dragover = false;
@@ -66,68 +58,79 @@ export default {
       const files = $event.dataTransfer
         ? [...$event.dataTransfer.files]
         : [...$event.target.files];
+
       files.forEach((file) => {
         if (file.type !== 'audio/mpeg') {
-          // eslint-disable-next-line no-useless-return
           return;
         }
 
-        const storageRef = storage.ref();
-        const songsRef = storageRef.child(`songs/${file.name}`);
+        if (!navigator.onLine) {
+          this.uploads.push({
+            task: {},
+            current_progress: 100,
+            name: file.name,
+            variant: 'bg-red-400',
+            icon: 'fas fa-times',
+            text_class: 'text-red-400',
+          });
+          return;
+        }
+
+        const storageRef = storage.ref(); // music-c2596.appspot.com
+        const songsRef = storageRef.child(`songs/${file.name}`); // music-c2596.appspot.com/songs/example.mp3
         const task = songsRef.put(file);
 
-        // eslint-disable-next-line operator-linebreak
-        const uploadIndex =
-          this.uploads.push({
-            task,
-            current_progress: 0,
-            name: file.name,
-            variant: 'bg-blue-400',
-            icon: 'fas fa-spinner fa-spin',
-            text_class: '',
-          }) - 1;
+        const uploadIndex = this.uploads.push({
+          task,
+          current_progress: 0,
+          name: file.name,
+          variant: 'bg-blue-400',
+          icon: 'fas fa-spinner fa-spin',
+          text_class: '',
+        }) - 1;
 
-        task.on(
-          'state_changed',
-          (snapshot) => {
-            // eslint-disable-next-line operator-linebreak
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            this.uploads[uploadIndex].current_progress = progress;
-          },
-          () => {
-            this.uploads[uploadIndex].variant = 'bg-red-400';
-            this.uploads[uploadIndex].icon = 'fas fa-times';
-            this.uploads[uploadIndex].text_class = 'text-red-400';
-          },
-          async () => {
-            console.log(auth.currentUser);
-            const song = {
-              uid: auth.currentUser.uid,
-              display_name: auth.currentUser.displayName,
-              original_name: task.snapshot.ref.name,
-              modified_name: task.snapshot.ref.name,
-              genre: '',
-              comment_count: 0,
-            };
+        task.on('state_changed', (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          this.uploads[uploadIndex].current_progress = progress;
+        }, (error) => {
+          this.uploads[uploadIndex].variant = 'bg-red-400';
+          this.uploads[uploadIndex].icon = 'fas fa-times';
+          this.uploads[uploadIndex].text_class = 'text-red-400';
+          console.log(error);
+        }, async () => {
+          const song = {
+            uid: auth.currentUser.uid,
+            display_name: auth.currentUser.displayName,
+            original_name: task.snapshot.ref.name,
+            modified_name: task.snapshot.ref.name,
+            genre: '',
+            comment_count: 0,
+          };
 
-            console.log(auth.currentUser);
-            console.log(song);
+          song.url = await task.snapshot.ref.getDownloadURL();
+          const songRef = await songsCollection.add(song);
+          const songSnapshot = await songRef.get();
 
-            song.url = await task.snapshot.ref.getDownloadURL();
-            const songRef = await songsCollection.add(song);
-            const songSnapshot = await songRef.get();
+          this.addSong(songSnapshot);
 
-            this.addSong(songSnapshot);
+          this.uploads[uploadIndex].variant = 'bg-green-400';
+          this.uploads[uploadIndex].icon = 'fas fa-check';
+          this.uploads[uploadIndex].text_class = 'text-green-400';
+        });
+      });
 
-            this.uploads[uploadIndex].variant = 'bg-green-400';
-            this.uploads[uploadIndex].icon = 'fas fa-check';
-            this.uploads[uploadIndex].text_class = 'text-green-400';
-            // eslint-disable-next-line comma-dangle
-          }
-        );
+      console.log(files);
+    },
+    cancelUploads() {
+      this.uploads.forEach((upload) => {
+        upload.task.cancel();
       });
     },
+  },
+  beforeUnmount() {
+    this.uploads.forEach((upload) => {
+      upload.task.cancel();
+    });
   },
 };
 </script>
