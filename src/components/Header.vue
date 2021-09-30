@@ -7,31 +7,38 @@
         class="text-white font-bold uppercase text-2xl mr-4"
         :to="{ name: 'Home' }"
         exact-active-class="no-active"
-        >Music</router-link
       >
+        Music
+      </router-link>
 
       <div class="flex flex-grow items-center">
         <!-- Primary Navigation -->
         <ul class="flex flex-row mt-1">
           <!-- Navigation Links -->
           <li>
-            <router-link class="px-2 text-white" :to="{ name: 'About' }"
-              >About</router-link
-            >
+            <router-link class="px-2 text-white" :to="{ name: 'About' }">
+              About
+            </router-link>
           </li>
           <li v-if="!userLoggedIn">
-            <a href="#" class="px-2 text-white" @click.prevent="toggleAuthModal"
-              >Login / Register</a
+            <a
+              class="px-2 text-white"
+              href="#"
+              @click.prevent="toggleAuthModal"
             >
+              Login / Register
+            </a>
           </li>
           <template v-else>
             <li>
-              <router-link class="px-2 text-white" :to="{ name: 'Manage' }"
-                >Manage</router-link
-              >
+              <router-link class="px-2 text-white" :to="{ name: 'Manage' }">
+                Manage
+              </router-link>
             </li>
             <li>
-              <a class="px-2 text-white" @click.prevent="signout">Logout</a>
+              <a class="px-2 text-white" href="#" @click.prevent="signout"
+                >Logout</a
+              >
             </li>
           </template>
         </ul>

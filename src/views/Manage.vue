@@ -2,7 +2,7 @@
   <section class="container mx-auto mt-6">
     <div class="md:grid md:grid-cols-3 md:gap-4">
       <div class="col-span-1">
-        <app-upload />
+        <app-upload ref="upload" :addSong="addSong" />
       </div>
       <div class="col-span-2">
         <div
@@ -17,9 +17,13 @@
           <div class="p-6">
             <!-- Composition Items -->
             <composition-item
-              v-for="song in songs"
+              v-for="(song, i) in songs"
               :key="song.docID"
               :song="song"
+              :updateSong="updateSong"
+              :index="i"
+              :removeSong="removeSong"
+              :updateUnsavedFlag="updateUnsavedFlag"
             />
           </div>
         </div>
@@ -42,13 +46,25 @@ export default {
   data() {
     return {
       songs: [],
+      unsavedFlag: false,
     };
   },
   async created() {
     const snapshot = await songsCollection
       .where('uid', '==', auth.currentUser.uid)
       .get();
-    snapshot.forEach((document) => {
+    snapshot.forEach(this.addSong);
+  },
+  methods: {
+    updateSong(i, values) {
+      this.songs[i].modified_name = values.modified_name;
+      this.songs[i].genre = values.genre;
+    },
+    removeSong(i) {
+      this.songs.splice(i, 1);
+    },
+    // Create an application data, merge song data and push to songs array
+    addSong(document) {
       const song = {
         // data() fucntion will return data from document
         // ... the spead operator will merge properties to song variable
@@ -57,7 +73,23 @@ export default {
       };
 
       this.songs.push(song);
-    });
+    },
+    updateUnsavedFlag(value) {
+      this.unsavedFlag = value;
+    },
+  },
+
+  beforeRouteLeave(to, from, next) {
+    if (!this.unsavedFlag) {
+      next();
+    } else {
+      // eslint-disable-next-line no-alert, no-restricted-globals
+      const leave = confirm(
+        // eslint-disable-next-line comma-dangle
+        'You have unsaved changes. Are you sure you want to leave?'
+      );
+      next(leave);
+    }
   },
 };
 </script>

@@ -5,10 +5,11 @@
       <i class="fas fa-upload float-right text-green-400 text-2xl"></i>
     </div>
     <div class="p-6">
+      <!-- Upload Dropbox -->
       <div
         class="w-full px-10 py-20 rounded text-center cursor-pointer border border-dashed
-                border-gray-400 text-gray-400 transition duration-500 hover:text-white
-                hover:bg-green-400 hover:border-green-400 hover:border-solid"
+          border-gray-400 text-gray-400 transition duration-500 hover:text-white
+          hover:bg-green-400 hover:border-green-400 hover:border-solid"
         :class="{ 'bg-green-400 border-green-400 border-solid': is_dragover }"
         @drag.prevent.stop=""
         @dragstart.prevent.stop=""
@@ -22,12 +23,14 @@
       </div>
       <input type="file" multiple @change="upload($event)" />
       <hr class="my-6" />
+      <!-- Progess Bars -->
       <div class="mb-4" v-for="upload in uploads" :key="upload.name">
+        <!-- File Name -->
         <div class="font-bold text-sm" :class="upload.text_class">
-          <i :class="upload.icon"></i>
-          {{ upload.name }}
+          <i :class="upload.icon"></i> {{ upload.name }}
         </div>
         <div class="flex h-4 overflow-hidden bg-gray-200 rounded">
+          <!-- Inner Progress Bar -->
           <div
             class="transition-all progress-bar"
             :class="upload.variant"
@@ -44,6 +47,7 @@ import { storage, auth, songsCollection } from '@/includes/firebase';
 
 export default {
   name: 'Upload',
+  props: ['addSong'],
   data() {
     return {
       is_dragover: false,
@@ -72,19 +76,23 @@ export default {
         const songsRef = storageRef.child(`songs/${file.name}`);
         const task = songsRef.put(file);
 
-        const uploadIndex = this.uploads.push({
-          task,
-          current_progress: 0,
-          name: file.name,
-          variant: 'bg-blue-400',
-          icon: 'fas fa-spinner fa-spin',
-          text_class: '',
-        }) - 1;
+        // eslint-disable-next-line operator-linebreak
+        const uploadIndex =
+          this.uploads.push({
+            task,
+            current_progress: 0,
+            name: file.name,
+            variant: 'bg-blue-400',
+            icon: 'fas fa-spinner fa-spin',
+            text_class: '',
+          }) - 1;
 
         task.on(
           'state_changed',
           (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            // eslint-disable-next-line operator-linebreak
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             this.uploads[uploadIndex].current_progress = progress;
           },
           () => {
@@ -93,6 +101,7 @@ export default {
             this.uploads[uploadIndex].text_class = 'text-red-400';
           },
           async () => {
+            console.log(auth.currentUser);
             const song = {
               uid: auth.currentUser.uid,
               display_name: auth.currentUser.displayName,
@@ -102,13 +111,20 @@ export default {
               comment_count: 0,
             };
 
+            console.log(auth.currentUser);
+            console.log(song);
+
             song.url = await task.snapshot.ref.getDownloadURL();
-            await songsCollection.add(song);
+            const songRef = await songsCollection.add(song);
+            const songSnapshot = await songRef.get();
+
+            this.addSong(songSnapshot);
 
             this.uploads[uploadIndex].variant = 'bg-green-400';
             this.uploads[uploadIndex].icon = 'fas fa-check';
             this.uploads[uploadIndex].text_class = 'text-green-400';
-          },
+            // eslint-disable-next-line comma-dangle
+          }
         );
       });
     },

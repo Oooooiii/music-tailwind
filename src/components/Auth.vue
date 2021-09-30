@@ -2,8 +2,8 @@
   <!-- Auth Modal -->
   <div
     class="fixed z-10 inset-0 overflow-y-auto"
-    :class="{ hidden: !authModalShow }"
     id="modal"
+    :class="{ hidden: !authModalShow }"
   >
     <div
       class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center
@@ -40,25 +40,26 @@
           <ul class="flex flex-wrap mb-4">
             <li class="flex-auto text-center">
               <a
-                class="block rounded py-3 px-4 transition "
+                class="block rounded py-3 px-4 transition"
+                href="#"
+                @click.prevent="tab = 'login'"
                 :class="{
                   'hover:text-white text-white bg-blue-600': tab === 'login',
                   'hover:text-blue-600': tab === 'register',
                 }"
-                @click.prevent="tab = 'login'"
-                href="#"
-                >Login</a
               >
+                Login
+              </a>
             </li>
             <li class="flex-auto text-center">
               <a
-                class="block rounded py-3 px-4 transition hover:text-blue-600"
+                class="block rounded py-3 px-4 transition"
+                href="#"
+                @click.prevent="tab = 'register'"
                 :class="{
                   'hover:text-white text-white bg-blue-600': tab === 'register',
                   'hover:text-blue-600': tab === 'login',
                 }"
-                href="#"
-                @click.prevent="tab = 'register'"
                 >Register</a
               >
             </li>

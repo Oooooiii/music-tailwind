@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';
 import About from '@/views/About.vue';
 import Manage from '@/views/Manage.vue';
+import Song from '@/views/Song.vue';
 import store from '@/store';
 
 const routes = [
@@ -32,6 +33,11 @@ const routes = [
     redirect: { name: 'manage' },
   },
   {
+    path: '/song/:id',
+    name: 'Song',
+    component: Song,
+  },
+  {
     path: '/:catchAll(.*)*',
     redirect: { name: 'Home' },
   },
@@ -45,7 +51,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // Check if user visited path is 'requiresAuth', if not then just let them go.
-  if (!to.matched.some(((record) => record.meta.requiresAuth))) {
+  if (!to.matched.some((record) => record.meta.requiresAuth)) {
     next();
     return;
   }
