@@ -4,12 +4,12 @@ import 'firebase/compat/firestore';
 import 'firebase/compat/storage';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyCR4Ze5y0y8-J26zsWvZGVYXEysbtbV8Tc',
-  authDomain: 'music-329e2.firebaseapp.com',
-  projectId: 'music-329e2',
-  storageBucket: 'music-329e2.appspot.com',
-  messagingSenderId: '291560331020',
-  appId: '1:291560331020:web:d8adebeaf3eb3a37ef1b29',
+  apiKey: '',
+  authDomain: '',
+  projectId: '',
+  storageBucket: '',
+  messagingSenderId: '',
+  appId: '',
 };
 
 firebase.initializeApp(firebaseConfig);
